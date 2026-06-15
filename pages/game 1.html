@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tron 5000 </title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030712;
+      --bg-2: #07111f;
+      --panel: rgba(7, 15, 30, 0.74);
+      --panel-2: rgba(11, 22, 42, 0.74);
+      --line: rgba(88, 232, 255, 0.2);
+      --text: #ebf9ff;
+      --muted: #8aa9c2;
+      --cyan: #63f3ff;
+      --blue: #3d81ff;
+      --magenta: #ff5ee2;
+      --green: #69ffad;
+      --amber: #ffd95e;
+      --danger: #ff5f86;
+      --shadow: 0 0 24px rgba(99, 243, 255, 0.18), 0 0 80px rgba(61,129,255,0.12);
+      --scan: rgba(255,255,255,0.025);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      overflow: hidden;
+      font-family: 'Rajdhani', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 20%, rgba(61,129,255,0.16), transparent 28%),
+        radial-gradient(circle at 78% 12%, rgba(255,94,226,0.12), transparent 20%),
+        radial-gradient(circle at 50% 100%, rgba(99,243,255,0.1), transparent 40%),
+        linear-gradient(180deg, #01040a, #040b16 46%, #02050b 100%);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .arena-shell {
+      position: relative;
+      min-width: 0;
+      overflow: hidden;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(5,9,18,0.98), rgba(3,7,14,0.98));
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background:
+        linear-gradient(transparent 97%, rgba(99,243,255,0.06) 100%),
+        linear-gradient(90deg, transparent 97%, rgba(99,243,255,0.06) 100%);
+      background-size: 36px 36px;
+    }
+
+    .topbar {
+      position: absolute;
+      inset: 16px 18px auto 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      pointer-events: none;
+    }
+
+    .glass {
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      max-width: 430px;
+      border-radius: 18px;
+      padding: 12px 16px;
+    }
+
+    .brand h1 {
+      margin: 0 0 6px;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: clamp(1.2rem, 2.4vw, 2rem);
+      color: var(--cyan);
+      text-shadow: 0 0 14px rgba(99,243,255,0.45);
+    }
+
+    .brand p, .signal, .panel p, .panel li {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.35;
+      font-size: 0.98rem;
+    }
+
+    .signal {
+      min-width: 220px;
+      text-align: right;
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .center {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      pointer-events: none;
+    }
+
+    .modal {
+      width: min(760px, 92%);
+      padding: 26px 24px;
+      border-radius: 24px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(10,18,34,0.9), rgba(5,10,21,0.82));
+      border: 1px solid rgba(99,243,255,0.24);
+      box-shadow: 0 0 34px rgba(99,243,255,0.18), inset 0 0 24px rgba(99,243,255,0.06);
+      backdrop-filter: blur(14px);
+    }
+
+    .modal h2 {
+      margin: 0 0 10px;
+      font-family: 'Orbitron', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: clamp(1.7rem, 4.2vw, 3rem);
+      color: #fff;
+      text-shadow: 0 0 20px rgba(99,243,255,0.35);
+    }
+
+    .modal p {
+      margin: 9px auto;
+      max-width: 58ch;
+      color: #d9efff;
+      line-height: 1.55;
+      font-size: 1.03rem;
+    }
+
+    .accent { color: var(--amber); }
+    .hide { display: none !important; }
+
+    aside {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px;
+      overflow: auto;
+      background:
+        linear-gradient(180deg, rgba(5,9,18,0.98), rgba(4,7,14,0.98)),
+        repeating-linear-gradient(180deg, transparent 0 12px, var(--scan) 12px 13px);
+    }
+
+    .panel {
+      border-radius: 18px;
+      padding: 14px 16px;
+    }
+
+    .panel h3 {
+      margin: 0 0 10px;
+      font-family: 'Orbitron', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--cyan);
+      font-size: 0.95rem;
+    }
+
+    .score {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2.2rem, 4vw, 3.8rem);
+      line-height: 1;
+      color: #fff;
+      text-shadow: 0 0 24px rgba(99,243,255,0.4);
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 12px;
+    }
+
+    .meter {
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .meter span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--cyan), var(--blue), var(--magenta));
+      box-shadow: 0 0 18px rgba(99,243,255,0.35);
+    }
+
+    .rows {
+      display: grid;
+      gap: 10px;
+      font-size: 1rem;
+      color: #dff5ff;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    li {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .icon-box {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      color: currentColor;
+    }
+
+    .icon-box svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 10px currentColor);
+    }
+
+    .foot {
+      margin-top: auto;
+      text-align: center;
+      color: #8fb2d0;
+      line-height: 1.45;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+      aside {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        width: min(300px, calc(100vw - 20px));
+        max-height: calc(100vh - 20px);
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        background: rgba(3,8,16,0.82);
+        backdrop-filter: blur(14px);
+      }
+      .signal { display: none; }
+      .brand p { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <main class="arena-shell">
+      <canvas id="game"></canvas>
+
+      <div class="topbar">
+        <section class="brand glass">
+          <h1>TRON 5000 </h1>
+          <p>Tron and bots can die on any trail, including their own, unless shielded.</p>
+        </section>
+        <section class="signal glass" id="signal">Awaiting launch...</section>
+      </div>
+
+      <div class="center" id="center">
+        <div class="modal" id="modal">
+          <h2>Grid online</h2>
+          <p>Steer with <span class="accent">Arrow keys</span> or <span class="accent">WASD</span>. Press <span class="accent">Space</span> to start and <span class="accent">R</span> to reset.</p>
+          <p>You gain 1 point every 3 seconds and win at <span class="accent">100 points</span>. The game gets harder every <span class="accent">2 kills</span>.</p>
+          <p>A new rider enters every <span class="accent">12 seconds</span> and every <span class="accent">15 seconds</span>. Both bots and Tron can collect the shield and clock power-ups.</p>
+        </div>
+      </div>
+    </main>
+
+    <aside>
+      <section class="panel glass">
+        <h3>Score</h3>
+        <div class="score" id="score">0</div>
+        <div class="meter"><span id="scoreBar"></span></div>
+        <p id="scoreText">100 points wins the match.</p>
+      </section>
+
+      <section class="panel glass">
+        <h3>Combat feed</h3>
+        <div class="rows">
+          <div class="row"><span>State</span><span id="state">Waiting</span></div>
+          <div class="row"><span>Speed tier</span><span id="tier">0</span></div>
+          <div class="row"><span>Tron speed</span><span id="speed">0.0</span></div>
+          <div class="row"><span>Kills</span><span id="kills">0</span></div>
+          <div class="row"><span>Riders alive</span><span id="alive">0</span></div>
+          <div class="row"><span>12s spawn</span><span id="spawn12">12.0s</span></div>
+          <div class="row"><span>15s spawn</span><span id="spawn15">15.0s</span></div>
+          <div class="row"><span>Tron shield</span><span id="shield">0.0s</span></div>
+          <div class="row"><span>Slow field</span><span id="slow">0.0s</span></div>
+        </div>
+      </section>
+
+      <section class="panel glass">
+        <h3>Power systems</h3>
+        <ul>
+          <li>
+            <span class="icon-box" style="color: var(--green)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3l7 3v5c0 5-3.2 8.5-7 10-3.8-1.5-7-5-7-10V6l7-3z"></path>
+                <path d="M9.5 12l1.7 1.7 3.7-4"></path>
+              </svg>
+            </span>
+            <span>Shield icon gives 10 seconds of invulnerability, and bots can use it too.</span>
+          </li>
+          <li>
+            <span class="icon-box" style="color: var(--amber)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="13" r="7"></circle>
+                <path d="M12 13V9"></path>
+                <path d="M12 13l3 2"></path>
+                <path d="M9 3h6"></path>
+                <path d="M17 5l1.5-1.5"></path>
+              </svg>
+            </span>
+            <span>Clock icon slows the full arena for 10 seconds, and bots can trigger it as well.</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="panel glass">
+        <h3>Rules</h3>
+        <p>Tron dies if he runs into his own trail. Bots also crash on their own trails unless shielded. Cutting riders off still scores kills and pushes the match into faster tiers every 2 eliminations.</p>
+      </section>
+
+      <p class="foot">Tron 5000 shifts the game toward pure trail warfare: denser pressure, dual spawn clocks, and shared power-ups.</p>
+    </aside>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    const ui = {
+      score: document.getElementById('score'),
+      scoreBar: document.getElementById('scoreBar'),
+      scoreText: document.getElementById('scoreText'),
+      state: document.getElementById('state'),
+      tier: document.getElementById('tier'),
+      speed: document.getElementById('speed'),
+      kills: document.getElementById('kills'),
+      alive: document.getElementById('alive'),
+      spawn12: document.getElementById('spawn12'),
+      spawn15: document.getElementById('spawn15'),
+      shield: document.getElementById('shield'),
+      slow: document.getElementById('slow'),
+      signal: document.getElementById('signal'),
+      center: document.getElementById('center'),
+      modal: document.getElementById('modal')
+    };
+
+    const WORLD = { width: 1360, height: 880 };
+    const TARGET_SCORE = 100;
+    const SCORE_INTERVAL = 3;
+    const SHIELD_DURATION = 10;
+    const SLOW_DURATION = 10;
+    const PLAYER = 'tron';
+    const TRAIL_STEP = 2.6;
+
+    const state = {
+      running: false,
+      gameOver: false,
+      victory: false,
+      lastTime: 0,
+      riders: [],
+      trailMap: new Map(),
+      kills: 0,
+      score: 0,
+      scoreTimer: 0,
+      spawn12Timer: 12,
+      spawn15Timer: 15,
+      slowTimer: 0,
+      slowRespawn: 6,
+      shieldRespawn: 8,
+      powerups: [],
+      idCounter: 0
+    };
+
+    const botColors = ['#ff5ee2', '#ff8361', '#77a0ff', '#ffd95e', '#69ffad', '#ff6ca0'];
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function setModal(title, lines) {
+      ui.modal.innerHTML = `<h2>${title}</h2>${lines.map(t => `<p>${t}</p>`).join('')}`;
+      ui.center.classList.remove('hide');
+    }
+    function hideModal() { ui.center.classList.add('hide'); }
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+    function keyFor(x, y) { return `${Math.round(x)}|${Math.round(y)}`; }
+    function difficultyTier() { return Math.floor(state.kills / 2); }
+    function playerBaseSpeed() { return 106 + difficultyTier() * 15; }
+    function enemyBaseSpeed() { return 94 + difficultyTier() * 12; }
+    function effectiveSlowFactor() { return state.slowTimer > 0 ? 0.62 : 1; }
+
+    function worldScale() {
+      return Math.min(canvas.clientWidth / WORLD.width, canvas.clientHeight / WORLD.height);
+    }
+    function worldOffset() {
+      const s = worldScale();
+      return { x: (canvas.clientWidth - WORLD.width * s) / 2, y: (canvas.clientHeight - WORLD.height * s) / 2, s };
+    }
+    function toScreen(x, y) {
+      const o = worldOffset();
+      return { x: o.x + x * o.s, y: o.y + y * o.s, s: o.s };
+    }
+
+    function trailWidth(speed) {
+      return clamp(7.5 - (speed - 90) / 45, 4, 7.5);
+    }
+
+    function spawnPower(type) {
+      for (let i = 0; i < 250; i++) {
+        const x = rand(120, WORLD.width - 120);
+        const y = rand(120, WORLD.height - 120);
+        if (!state.trailMap.has(keyFor(x, y))) {
+          state.powerups.push({ type, x, y, radius: 17 });
+          return;
+        }
+      }
+    }
+
+    function createRider(opts) {
+      return {
+        id: opts.id,
+        isPlayer: opts.isPlayer,
+        x: opts.x,
+        y: opts.y,
+        dir: opts.dir,
+        nextDir: opts.dir,
+        color: opts.color,
+        alive: true,
+        trail: [{ x: opts.x, y: opts.y }],
+        width: opts.isPlayer ? 7 : 6,
+        aiTimer: rand(0.1, 0.45),
+        shieldTimer: 0,
+        speed: opts.isPlayer ? playerBaseSpeed() : enemyBaseSpeed() + rand(-8, 14)
+      };
+    }
+
+    function vector(dir) {
+      if (dir === 'up') return { x: 0, y: -1 };
+      if (dir === 'down') return { x: 0, y: 1 };
+      if (dir === 'left') return { x: -1, y: 0 };
+      return { x: 1, y: 0 };
+    }
+
+    function opposite(a, b) {
+      return (a === 'up' && b === 'down') || (a === 'down' && b === 'up') || (a === 'left' && b === 'right') || (a === 'right' && b === 'left');
+    }
+
+    function getPlayer() {
+      return state.riders.find(r => r.id === PLAYER);
+    }
+
+    function initialSpawnPoint(player) {
+      if (player) return { x: WORLD.width * 0.26, y: WORLD.height * 0.5, dir: 'right' };
+      const options = [
+        { x: rand(70, WORLD.width - 70), y: 70, dir: 'down' },
+        { x: rand(70, WORLD.width - 70), y: WORLD.height - 70, dir: 'up' },
+        { x: 70, y: rand(70, WORLD.height - 70), dir: 'right' },
+        { x: WORLD.width - 70, y: rand(70, WORLD.height - 70), dir: 'left' }
+      ];
+      return options[Math.floor(Math.random() * options.length)];
+    }
+
+    function registerPoint(ownerId, x, y) {
+      const key = keyFor(x, y);
+      if (!state.trailMap.has(key)) state.trailMap.set(key, ownerId);
+      return state.trailMap.get(key);
+    }
+
+    function crash(rider, reason, killerId = null) {
+      if (!rider.alive) return;
+      if (rider.shieldTimer > 0) return;
+      rider.alive = false;
+      if (!rider.isPlayer) {
+        if (killerId === PLAYER && rider.id !== PLAYER) {
+          state.kills += 1;
+          state.score += 6;
+          ui.signal.textContent = 'Enemy rider eliminated. Difficulty escalated by kill progress.';
+        }
+      } else {
+        state.running = false;
+        state.gameOver = true;
+        ui.signal.textContent = 'Tron crashed. Reset with R.';
+        setModal('Derezzed', [
+          `Tron crashed by ${reason}.`,
+          'He can now die on his own trail too.',
+          'Press <span class="accent">R</span> to reset, then <span class="accent">Space</span> to launch again.'
+        ]);
+      }
+    }
+
+    function addTrailSegment(rider, x1, y1, x2, y2) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const dist = Math.max(1, Math.hypot(dx, dy));
+      const steps = Math.ceil(dist / TRAIL_STEP);
+      for (let i = 1; i <= steps; i++) {
+        const t = i / steps;
+        const px = x1 + dx * t;
+        const py = y1 + dy * t;
+        const existing = registerPoint(rider.id, px, py);
+        if (existing && existing !== rider.id) {
+          crash(rider, 'another rider trail', existing);
+          if (existing === PLAYER && !rider.isPlayer) state.kills += 1, state.score += 6;
+          break;
+        }
+        if (existing === rider.id) {
+          crash(rider, 'its own trail', rider.id);
+          break;
+        }
+        rider.trail.push({ x: px, y: py });
+      }
+    }
+
+    function spawnBot() {
+      const spot = initialSpawnPoint(false);
+      const bot = createRider({
+        id: `bot-${++state.idCounter}`,
+        isPlayer: false,
+        x: spot.x,
+        y: spot.y,
+        dir: spot.dir,
+        color: botColors[state.idCounter % botColors.length]
+      });
+      state.riders.push(bot);
+      registerPoint(bot.id, bot.x, bot.y);
+    }
+
+    function resetGame() {
+      state.running = false;
+      state.gameOver = false;
+      state.victory = false;
+      state.lastTime = 0;
+      state.riders = [];
+      state.trailMap = new Map();
+      state.kills = 0;
+      state.score = 0;
+      state.scoreTimer = 0;
+      state.spawn12Timer = 12;
+      state.spawn15Timer = 15;
+      state.slowTimer = 0;
+      state.slowRespawn = 5;
+      state.shieldRespawn = 7;
+      state.powerups = [];
+      const p = initialSpawnPoint(true);
+      const tron = createRider({ id: PLAYER, isPlayer: true, x: p.x, y: p.y, dir: p.dir, color: '#63f3ff' });
+      state.riders.push(tron);
+      registerPoint(tron.id, tron.x, tron.y);
+      spawnBot();
+      spawnBot();
+      spawnPower('shield');
+      spawnPower('clock');
+      ui.signal.textContent = 'Grid ready. Press Space to begin.';
+      setModal('Grid rewrite online', [
+        'Trail collisions are harsher now: your own line can kill you.',
+        'A new rider is added on two separate schedules, every <span class="accent">12</span> and <span class="accent">15</span> seconds.',
+        'Press <span class="accent">Space</span> to start.'
+      ]);
+      updateUI();
+    }
+
+    function startGame() {
+      if (state.gameOver || state.victory) return;
+      state.running = true;
+      hideModal();
+      ui.signal.textContent = 'Cycle war active.';
+    }
+
+    function aiDirection(rider, dt) {
+      rider.aiTimer -= dt;
+      if (rider.aiTimer > 0) return;
+      rider.aiTimer = rand(0.08, 0.22);
+      const dirs = ['up', 'down', 'left', 'right'].filter(d => !opposite(d, rider.dir));
+      let best = rider.dir;
+      let bestScore = -Infinity;
+      const player = getPlayer();
+      for (const dir of dirs) {
+        const v = vector(dir);
+        let free = 0;
+        let risk = 0;
+        for (let step = 16; step <= 170; step += 16) {
+          const x = rider.x + v.x * step;
+          const y = rider.y + v.y * step;
+          if (x <= 8 || x >= WORLD.width - 8 || y <= 8 || y >= WORLD.height - 8) { risk += 8; break; }
+          const existing = state.trailMap.get(keyFor(x, y));
+          if (existing) { risk += existing === rider.id ? 7 : 4; break; }
+          free += 1;
+        }
+        let powerBias = 0;
+        for (const power of state.powerups) {
+          const nx = rider.x + v.x * 90;
+          const ny = rider.y + v.y * 90;
+          powerBias += 140 / (Math.hypot(nx - power.x, ny - power.y) + 50);
+        }
+        const attackBias = player && !rider.isPlayer ? -Math.hypot((rider.x + v.x * 85) - player.x, (rider.y + v.y * 85) - player.y) * 0.004 : 0;
+        const score = free * 1.7 + powerBias + attackBias - risk + Math.random() * 0.8;
+        if (score > bestScore) {
+          bestScore = score;
+          best = dir;
+        }
+      }
+      rider.nextDir = best;
+    }
+
+    function collectPowerups(rider) {
+      for (let i = state.powerups.length - 1; i >= 0; i--) {
+        const p = state.powerups[i];
+        if (Math.hypot(rider.x - p.x, rider.y - p.y) <= p.radius + rider.width + 4) {
+          if (p.type === 'shield') {
+            rider.shieldTimer = SHIELD_DURATION;
+            ui.signal.textContent = rider.isPlayer ? 'Shield acquired. Invulnerability active.' : 'A bot activated a shield.';
+          } else {
+            state.slowTimer = SLOW_DURATION;
+            ui.signal.textContent = rider.isPlayer ? 'Clock collected. Arena slowed for 10 seconds.' : 'A bot triggered a slow field.';
+          }
+          state.powerups.splice(i, 1);
+        }
+      }
+    }
+
+    function update(dt) {
+      if (!state.running) return;
+
+      state.scoreTimer += dt;
+      while (state.scoreTimer >= SCORE_INTERVAL) {
+        state.score += 1;
+        state.scoreTimer -= SCORE_INTERVAL;
+      }
+      if (state.score >= TARGET_SCORE) {
+        state.score = TARGET_SCORE;
+        state.running = false;
+        state.victory = true;
+        ui.signal.textContent = 'Victory achieved at 100 points.';
+        setModal('Victory', [
+          'You survived long enough to reach <span class="accent">100 points</span>.',
+          'Press <span class="accent">R</span> to reset for another run.'
+        ]);
+      }
+
+      state.spawn12Timer -= dt;
+      if (state.spawn12Timer <= 0 && !state.victory) {
+        spawnBot();
+        state.spawn12Timer += 12;
+        ui.signal.textContent = '12-second rider reinforcement entered the grid.';
+      }
+      state.spawn15Timer -= dt;
+      if (state.spawn15Timer <= 0 && !state.victory) {
+        spawnBot();
+        state.spawn15Timer += 15;
+        ui.signal.textContent = '15-second rider reinforcement entered the grid.';
+      }
+
+      state.slowTimer = Math.max(0, state.slowTimer - dt);
+      state.slowRespawn -= dt;
+      state.shieldRespawn -= dt;
+      if (state.slowRespawn <= 0) {
+        spawnPower('clock');
+        state.slowRespawn = 10 + rand(0, 6);
+      }
+      if (state.shieldRespawn <= 0) {
+        spawnPower('shield');
+        state.shieldRespawn = 11 + rand(0, 6);
+      }
+
+      const slowFactor = effectiveSlowFactor();
+      for (const rider of state.riders) {
+        if (!rider.alive) continue;
+        rider.shieldTimer = Math.max(0, rider.shieldTimer - dt);
+        if (!rider.isPlayer) aiDirection(rider, dt);
+        if (rider.nextDir && !opposite(rider.nextDir, rider.dir)) rider.dir = rider.nextDir;
+        rider.speed = rider.isPlayer ? playerBaseSpeed() : enemyBaseSpeed() + rand(-1, 1);
+
+        const v = vector(rider.dir);
+        const move = rider.speed * slowFactor * dt;
+        const prevX = rider.x;
+        const prevY = rider.y;
+        rider.x += v.x * move;
+        rider.y += v.y * move;
+
+        if (rider.x <= 6 || rider.x >= WORLD.width - 6 || rider.y <= 6 || rider.y >= WORLD.height - 6) {
+          crash(rider, 'the border');
+          continue;
+        }
+
+        addTrailSegment(rider, prevX, prevY, rider.x, rider.y);
+        if (!rider.alive) continue;
+        collectPowerups(rider);
+      }
+
+      state.riders = state.riders.filter(r => r.alive || r.isPlayer);
+      updateUI();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+      const o = worldOffset();
+      const s = o.s;
+      const x0 = o.x;
+      const y0 = o.y;
+
+      const grad = ctx.createLinearGradient(0, y0, 0, y0 + WORLD.height * s);
+      grad.addColorStop(0, '#06111f');
+      grad.addColorStop(1, '#02060d');
+      ctx.fillStyle = grad;
+      ctx.fillRect(x0, y0, WORLD.width * s, WORLD.height * s);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x0, y0, WORLD.width * s, WORLD.height * s);
+      ctx.clip();
+
+      for (let x = 0; x <= WORLD.width; x += 40) {
+        const sx = x0 + x * s;
+        ctx.strokeStyle = x % 160 === 0 ? 'rgba(99,243,255,0.14)' : 'rgba(99,243,255,0.05)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(sx, y0);
+        ctx.lineTo(sx, y0 + WORLD.height * s);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= WORLD.height; y += 40) {
+        const sy = y0 + y * s;
+        ctx.strokeStyle = y % 160 === 0 ? 'rgba(99,243,255,0.14)' : 'rgba(99,243,255,0.05)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x0, sy);
+        ctx.lineTo(x0 + WORLD.width * s, sy);
+        ctx.stroke();
+      }
+
+      drawPowerups();
+      drawTrails();
+      drawRiders();
+      ctx.restore();
+
+      ctx.strokeStyle = 'rgba(99,243,255,0.5)';
+      ctx.shadowColor = 'rgba(99,243,255,0.8)';
+      ctx.shadowBlur = 18;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(x0, y0, WORLD.width * s, WORLD.height * s);
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = 'rgba(255,255,255,0.03)';
+      for (let y = 0; y < canvas.clientHeight; y += 4) ctx.fillRect(0, y, canvas.clientWidth, 1);
+    }
+
+    function drawPowerups() {
+      const pulse = performance.now() * 0.006;
+      for (const p of state.powerups) {
+        const pos = toScreen(p.x, p.y);
+        const r = p.radius * pos.s;
+        const color = p.type === 'shield' ? '#69ffad' : '#ffd95e';
+        ctx.save();
+        ctx.translate(pos.x, pos.y);
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 24;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, r + Math.sin(pulse + p.x * 0.01) * 1.8, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 1.45, 0, Math.PI * 2);
+        ctx.globalAlpha = 0.18;
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        if (p.type === 'shield') {
+          ctx.beginPath();
+          ctx.moveTo(0, -r * 0.9);
+          ctx.lineTo(r * 0.75, -r * 0.45);
+          ctx.lineTo(r * 0.7, r * 0.25);
+          ctx.quadraticCurveTo(0, r * 1.05, -r * 0.7, r * 0.25);
+          ctx.lineTo(-r * 0.75, -r * 0.45);
+          ctx.closePath();
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(-r * 0.22, 0);
+          ctx.lineTo(-r * 0.02, r * 0.22);
+          ctx.lineTo(r * 0.33, -r * 0.18);
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(0, r * 0.1, r * 0.72, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(0, r * 0.1);
+          ctx.lineTo(0, -r * 0.34);
+          ctx.moveTo(0, r * 0.1);
+          ctx.lineTo(r * 0.28, r * 0.28);
+          ctx.moveTo(-r * 0.3, -r * 0.95);
+          ctx.lineTo(r * 0.3, -r * 0.95);
+          ctx.moveTo(r * 0.34, -r * 0.82);
+          ctx.lineTo(r * 0.54, -r * 1.02);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
+    function drawTrails() {
+      const scale = worldScale();
+      for (const rider of state.riders) {
+        if (rider.trail.length < 2) continue;
+        ctx.save();
+        ctx.strokeStyle = rider.color;
+        ctx.shadowColor = rider.color;
+        ctx.shadowBlur = rider.isPlayer ? 18 : 12;
+        ctx.lineWidth = trailWidth(rider.speed) * scale;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        rider.trail.forEach((point, i) => {
+          const p = toScreen(point.x, point.y);
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        });
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function drawRiders() {
+      const pulse = performance.now() * 0.008;
+      for (const rider of state.riders) {
+        if (!rider.alive) continue;
+        const p = toScreen(rider.x, rider.y);
+        const v = vector(rider.dir);
+        const angle = Math.atan2(v.y, v.x);
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(angle);
+        ctx.shadowColor = rider.color;
+        ctx.shadowBlur = rider.isPlayer ? 24 : 16;
+        ctx.fillStyle = rider.color;
+        const z = p.s;
+        ctx.beginPath();
+        ctx.moveTo(18 * z, 0);
+        ctx.lineTo(-12 * z, -10 * z);
+        ctx.lineTo(-8 * z, 0);
+        ctx.lineTo(-12 * z, 10 * z);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.fillRect(-1.8 * z, -3 * z, 8 * z, 6 * z);
+        if (rider.shieldTimer > 0) {
+          ctx.strokeStyle = 'rgba(105,255,173,0.95)';
+          ctx.shadowColor = 'rgba(105,255,173,0.95)';
+          ctx.lineWidth = 2.6;
+          ctx.beginPath();
+          ctx.arc(0, 0, 18 * z + Math.sin(pulse + rider.x * 0.01) * 2, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
+    function updateUI() {
+      const tron = getPlayer();
+      ui.score.textContent = Math.floor(state.score);
+      ui.scoreBar.style.width = `${(state.score / TARGET_SCORE) * 100}%`;
+      ui.scoreText.textContent = state.victory ? 'Victory achieved.' : `${TARGET_SCORE - Math.floor(state.score)} points remaining.`;
+      ui.state.textContent = state.victory ? 'Victory' : state.gameOver ? 'Defeated' : state.running ? 'Running' : 'Waiting';
+      ui.tier.textContent = String(difficultyTier());
+      ui.speed.textContent = tron ? (tron.speed * effectiveSlowFactor()).toFixed(1) : '0.0';
+      ui.kills.textContent = String(state.kills);
+      ui.alive.textContent = String(state.riders.filter(r => r.alive).length);
+      ui.spawn12.textContent = state.victory ? '--' : `${Math.max(0, state.spawn12Timer).toFixed(1)}s`;
+      ui.spawn15.textContent = state.victory ? '--' : `${Math.max(0, state.spawn15Timer).toFixed(1)}s`;
+      ui.shield.textContent = tron ? `${tron.shieldTimer.toFixed(1)}s` : '0.0s';
+      ui.slow.textContent = `${state.slowTimer.toFixed(1)}s`;
+    }
+
+    const controls = {
+      ArrowUp: 'up', KeyW: 'up',
+      ArrowDown: 'down', KeyS: 'down',
+      ArrowLeft: 'left', KeyA: 'left',
+      ArrowRight: 'right', KeyD: 'right'
+    };
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyR') {
+        resetGame();
+        return;
+      }
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (!state.running && !state.gameOver && !state.victory) startGame();
+        return;
+      }
+      const dir = controls[e.code];
+      if (!dir) return;
+      e.preventDefault();
+      const tron = getPlayer();
+      if (!tron || !tron.alive) return;
+      if (!opposite(tron.dir, dir)) tron.nextDir = dir;
+    });
+
+    function loop(ts) {
+      if (!state.lastTime) state.lastTime = ts;
+      const dt = Math.min((ts - state.lastTime) / 1000, 0.05);
+      state.lastTime = ts;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    resetGame();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
